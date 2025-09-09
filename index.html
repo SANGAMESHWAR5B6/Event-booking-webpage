@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Smart Event Booking Portal — TechVille</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand" role="banner" tabindex="0">
+      <span class="logo">🎟️</span>
+      <h1>Smart Event Booking — TechVille</h1>
+    </div>
+
+    <nav aria-label="Primary">
+      <a href="#/" class="nav-link" data-link>Home</a>
+      <a href="#/bookings" class="nav-link" data-link>My Bookings</a>
+      <button id="themeToggle" class="chip" aria-label="Toggle Theme" title="Toggle Theme">🌓</button>
+    </nav>
+  </header>
+
+  <!-- Filters / Sort (Home only) -->
+  <section id="controlsBar" class="controls container hidden" aria-live="polite">
+    <div class="row">
+      <label>
+        Category
+        <select id="filterCategory">
+          <option value="all">All</option>
+        </select>
+      </label>
+
+      <label>
+        Sort by
+        <select id="sortBy">
+          <option value="date_asc">Date ↑</option>
+          <option value="date_desc">Date ↓</option>
+          <option value="price_asc">Price ↑</option>
+          <option value="price_desc">Price ↓</option>
+        </select>
+      </label>
+
+      <label class="grow">
+        Search
+        <input type="search" id="searchInput" placeholder="Search events…" />
+      </label>
+      <button id="resetFilters" class="btn ghost">Reset</button>
+    </div>
+  </section>
+
+  <!-- Main Router Outlet -->
+  <main id="app" class="container" aria-live="polite">
+    <!-- Home (Dynamic Events List) -->
+    <section id="homeView" class="view">
+      <h2 class="section-title">Explore Events</h2>
+      <div id="eventsGrid" class="grid"></div>
+    </section>
+
+    <!-- Event Details (for #/event/:id) -->
+    <section id="eventView" class="view hidden">
+      <button class="btn ghost small" id="backHome">&larr; Back</button>
+      <div id="eventDetails" class="card big"></div>
+    </section>
+
+    <!-- My Bookings -->
+    <section id="bookingsView" class="view hidden">
+      <h2 class="section-title">My Bookings</h2>
+      <div id="bookingsList" class="stack"></div>
+    </section>
+
+    <!-- Custom 404 -->
+    <section id="notFoundView" class="view hidden centered">
+      <div class="card">
+        <h2>404 — Not Found</h2>
+        <p>We couldn’t find that event or page.</p>
+        <a class="btn" href="#/">Go Home</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Booking Modal -->
+  <dialog id="bookingModal" class="modal">
+    <form method="dialog" id="bookingForm" class="card">
+      <div class="modal-header">
+        <h3 id="bookingTitle">Book Event</h3>
+        <button class="icon-btn" type="button" id="closeBooking" aria-label="Close">✖</button>
+      </div>
+
+      <div class="stack">
+        <div class="kv">
+          <span>Event:</span><strong id="bmEventName">—</strong>
+        </div>
+        <div class="kv">
+          <span>Date:</span><strong id="bmEventDate">—</strong>
+        </div>
+        <div class="kv">
+          <span>Price:</span><strong id="bmEventPrice">—</strong>
+        </div>
+        <div class="kv">
+          <span>Available:</span><strong id="bmEventAvail">—</strong>
+        </div>
+
+        <label>
+          Your Name
+          <input id="bmName" type="text" placeholder="Full name" required />
+        </label>
+        <label>
+          Number of Tickets
+          <input id="bmTickets" type="number" min="1" step="1" required />
+        </label>
+      </div>
+
+      <div class="row end">
+        <button type="button" class="btn ghost" id="cancelBooking">Cancel</button>
+        <button type="submit" class="btn">Confirm Booking</button>
+      </div>
+      <p id="bmError" class="error" aria-live="assertive"></p>
+    </form>
+  </dialog>
+
+  <!-- Hidden Admin Panel (Ctrl + Shift + A) -->
+  <dialog id="adminPanel" class="modal wide">
+    <form method="dialog" class="card">
+      <div class="modal-header">
+        <h3>Admin Panel</h3>
+        <div class="row gap">
+          <button type="button" id="addEventBtn" class="btn small">+ Add Event</button>
+          <button type="button" id="seedDemoBtn" class="btn ghost small">Seed Demo</button>
+          <button type="button" id="exportBtn" class="btn ghost small">Export JSON</button>
+          <label class="btn ghost small file-label">
+            Import JSON
+            <input id="importInput" type="file" accept="application/json" hidden />
+          </label>
+        </div>
+        <button class="icon-btn" type="button" id="closeAdmin" aria-label="Close">✖</button>
+      </div>
+
+      <div id="adminList" class="stack"></div>
+
+      <template id="eventFormTemplate">
+        <div class="card subtle stack event-form" data-mode="create">
+          <div class="row wrap gap">
+            <label class="grow">
+              Name
+              <input name="name" required />
+            </label>
+            <label>
+              Category
+              <input name="category" placeholder="e.g., Tech, Music" required />
+            </label>
+            <label>
+              Date
+              <input name="date" type="date" required />
+            </label>
+            <label>
+              Price (₹)
+              <input name="price" type="number" min="0" step="1" required />
+            </label>
+            <label>
+              Available Seats
+              <input name="availableSeats" type="number" min="0" step="1" required />
+            </label>
+          </div>
+          <label>
+            Description
+            <textarea name="description" rows="2" placeholder="Short description"></textarea>
+          </label>
+          <div class="row end gap">
+            <button type="button" class="btn ghost small ef-cancel">Cancel</button>
+            <button type="button" class="btn small ef-save">Save</button>
+          </div>
+        </div>
+      </template>
+    </form>
+  </dialog>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> TechVille • AENEXZ Tech Pvt. Ltd. — Major Project</p>
+    <p class="muted">Open the Admin Panel with <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd></p>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
